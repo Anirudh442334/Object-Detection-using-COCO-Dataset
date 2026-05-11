@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Object Detection — Neon Dashboard</title>
+
+  <!-- Tailwind CDN (no build step) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind config for smoother default dark styling
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            neon: {
+              DEFAULT: '#00FFE1'
+            }
+          },
+          boxShadow: {
+            neon: '0 8px 30px rgba(0,255,225,0.08), 0 0 40px rgba(0,255,225,0.06)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- ml5 (object detection / cocossd) -->
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-gray-900 to-black text-slate-200 antialiased">
+  <!-- NAVBAR -->
+  <header class="w-full py-4 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-cyan-400 flex items-center justify-center shadow-neon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3" /></svg>
+      </div>
+      <div>
+        <div class="text-lg font-semibold">Neon AI Detector</div>
+        <div class="text-xs text-slate-400">Realtime object detection with glowing overlays</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <button id="themeToggle" class="px-3 py-1 rounded bg-slate-800/40 hover:bg-slate-800/60 text-sm">Toggle Theme</button>
+      <div class="text-xs text-slate-400">Built with ml5 & Tailwind</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container mx-auto px-4 pb-12">
+    <div class="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+      <!-- Camera Card -->
+      <section class="md:col-span-2 bg-slate-800/40 rounded-2xl p-4 shadow-neon backdrop-blur-sm border border-slate-700/30">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div id="aiIndicator" class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(255,0,0,0.3)]"></div>
+            <div>
+              <div class="text-sm font-medium">AI Status</div>
+              <div id="statusText" class="text-xs text-slate-400">Loading model...</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-xs text-slate-400 text-right">
+              <div>FPS: <span id="fpsValue">--</span></div>
+              <div>Objects: <span id="objCount">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative rounded-xl overflow-hidden border border-slate-700/40">
+          <!-- video is hidden visually; canvas shows the feed -->
+          <video id="video" playsinline autoplay muted class="hidden"></video>
+
+          <!-- Canvas displays the video and overlays -->
+          <canvas id="c1" class="w-full h-auto block bg-black"></canvas>
+
+          <!-- Floating controls on top-right -->
+          <div class="absolute top-3 right-3 flex gap-2">
+            <button id="flipBtn" class="btn-floating" title="Flip Camera">Flip</button>
+            <button id="screenshotBtn" class="btn-floating" title="Take Screenshot">📸</button>
+            <button id="pauseBtn" class="btn-floating" title="Pause/Resume AI">⏯</button>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="aiToggle" type="checkbox" class="sr-only" />
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="text-sm text-slate-400">FPS</div>
+            <input id="fps" type="range" min="1" max="60" value="30" class="w-56" />
+            <div id="fpsLabel" class="text-sm w-10 text-right">30</div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button id="downloadLog" class="px-3 py-1 rounded bg-slate-700/40 hover:bg-slate-700/60 text-sm">Download Log</button>
+            <button id="resetColors" class="px-3 py-1 rounded bg-slate-700/40 hover:bg-slate-700/60 text-sm">Reset Colors</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar: Info & Model Status -->
+      <aside class="bg-slate-800/30 rounded-2xl p-4 shadow-neon border border-slate-700/30 flex flex-col gap-4">
+        <div>
+          <div class="text-xs text-slate-400">Model</div>
+          <div id="modelName" class="font-medium">cocossd (ml5)</div>
+        </div>
+
+        <div>
+          <div class="text-xs text-slate-400">Camera</div>
+          <div id="camLabel" class="font-medium">—</div>
+        </div>
+
+        <div>
+          <div class="text-xs text-slate-400">Last Detection</div>
+          <div id="lastDetected" class="font-medium">—</div>
+        </div>
+
+        <div>
+          <div class="text-xs text-slate-400">Notes</div>
+          <div class="text-sm text-slate-400">Tap the AI toggle to enable object detection. Use the screenshot button to save frames.</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-slate-500 pb-6">
+    © Neon AI · Realtime Object Detection
+  </footer>
+
+  <script src="video.js"></script>
+</body>
+</html>

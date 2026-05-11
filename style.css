@@ -1,0 +1,70 @@
+/* Minimal custom styles for neon look + toggles + floating buttons */
+
+/* Floating buttons */
+.btn-floating {
+  background: linear-gradient(135deg, rgba(0,255,200,0.08), rgba(128,0,255,0.04));
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #cd5a64;
+  padding: 8px 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 20px rgba(0,255,200,0.03);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.btn-floating:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,255,200,0.06); }
+
+/* Toggle */
+.toggle-track {
+  width: 48px;
+  height: 24px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-radius: 999px;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(180deg,#94f9e0,#00ffe1);
+  border-radius: 50%;
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1);
+  box-shadow: 0 6px 16px rgba(0,255,225,0.12);
+}
+input[type="checkbox"]:checked + .toggle-track {
+  background: linear-gradient(90deg, rgba(0,255,200,0.08), rgba(128,0,255,0.04));
+}
+input[type="checkbox"]:checked + .toggle-track::after {
+  transform: translateX(24px);
+}
+
+/* Canvas smoothing */
+canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  background: #000;
+}
+
+/* AI indicator pulse green when active */
+.ai-active {
+  background: #6df7b9 !important;
+  box-shadow: 0 0 18px rgba(0,255,178,0.28), 0 0 40px rgba(0,255,178,0.08) !important;
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* small responsive niceties */
+@media (max-width: 768px) {
+  .btn-floating { padding: 6px 8px; border-radius: 8px; font-size: 13px; }
+  .container { padding: 12px; }
+}
